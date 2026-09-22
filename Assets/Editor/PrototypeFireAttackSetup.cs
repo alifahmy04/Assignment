@@ -20,8 +20,6 @@ namespace ElementalAnomaly.Editor
             if (scene.path != "Assets/Scenes/SampleScene.unity") return;
             var player = Object.FindFirstObjectByType<PrototypePlayerProgression>();
             if (player == null) return;
-            var oldHud = GameObject.Find("Fire Combat HUD");
-            if (oldHud != null && oldHud.GetComponent<PrototypeFireHud>()?.status != null) return;
             var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/TextMesh Pro/Resources/Fonts & Materials/LiberationSans SDF.asset");
             if (font == null)
             {
@@ -31,6 +29,16 @@ namespace ElementalAnomaly.Editor
                     AssetDatabase.importPackageCompleted += ResourcesReady;
                     TMP_PackageResourceImporter.ImportResources(true, false, false);
                 }
+                return;
+            }
+            var health = player.GetComponent<PrototypePlayerHealth>() ?? player.gameObject.AddComponent<PrototypePlayerHealth>();
+            var oldHud = GameObject.Find("Fire Combat HUD");
+            if (oldHud != null && oldHud.GetComponent<PrototypeFireHud>()?.status != null)
+            {
+                EnsureHealthHud(oldHud.transform, oldHud.GetComponent<PrototypeFireHud>(), health, font);
+                foreach (var graphic in oldHud.GetComponentsInChildren<UnityEngine.UI.Graphic>(true)) graphic.raycastTarget = false;
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
                 return;
             }
             var combat = player.GetComponent<PrototypeFireCombat>() ?? player.gameObject.AddComponent<PrototypeFireCombat>();
@@ -98,13 +106,40 @@ namespace ElementalAnomaly.Editor
             reticle.rectTransform.pivot = new Vector2(0.5f, 0.5f);
             reticle.alignment = TextAlignmentOptions.Center;
             hud.reticle = reticle.gameObject;
-            hud.reticle.SetActive(false);
+            hud.reticle.SetActive(true);
             hud.meter.SetActive(false);
+            EnsureHealthHud(canvasObject.transform, hud, health, font);
             foreach (var graphic in canvasObject.GetComponentsInChildren<UnityEngine.UI.Graphic>(true)) graphic.raycastTarget = false;
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
             Debug.Log("Fire attack, meter and source effects saved to SampleScene.");
+        }
+
+        private static void EnsureHealthHud(Transform canvas, PrototypeFireHud hud, PrototypePlayerHealth health, TMP_FontAsset font)
+        {
+            hud.health = health;
+            Transform existing = canvas.Find("Health Panel");
+            if (existing != null)
+            {
+                hud.healthMeter = existing.gameObject;
+                hud.healthFill = existing.Find("Health Meter/Health Track/Health Fill") as RectTransform;
+                hud.healthText = existing.Find("Health Meter/Health")?.GetComponent<TMP_Text>();
+                return;
+            }
+
+            var panel = Rect("Health Panel", canvas, new Vector2(24, 158), new Vector2(280, 55));
+            panel.gameObject.AddComponent<UnityEngine.UI.Image>().color = new Color(0.02f, 0.025f, 0.04f, 0.92f);
+            hud.healthMeter = panel.gameObject;
+            var meter = Rect("Health Meter", panel, new Vector2(14, 8), new Vector2(250, 38));
+            var track = Rect("Health Track", meter, Vector2.zero, new Vector2(250, 10));
+            track.gameObject.AddComponent<UnityEngine.UI.Image>().color = new Color(0.22f, 0.04f, 0.04f);
+            hud.healthFill = Rect("Health Fill", track, Vector2.zero, Vector2.zero);
+            hud.healthFill.anchorMin = Vector2.zero;
+            hud.healthFill.anchorMax = Vector2.one;
+            hud.healthFill.offsetMin = hud.healthFill.offsetMax = Vector2.zero;
+            hud.healthFill.gameObject.AddComponent<UnityEngine.UI.Image>().color = new Color(0.95f, 0.1f, 0.08f);
+            hud.healthText = Label("Health", meter, new Vector2(0, 14), new Vector2(250, 22), font, "HP  5 / 5");
         }
         private static void ResourcesReady(string package)
         {

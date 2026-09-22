@@ -70,6 +70,9 @@ namespace ElementalAnomaly.Prototype
                 ref smoothVelocity,
                 positionSmoothTime);
             transform.rotation = Quaternion.LookRotation(pivot - transform.position, Vector3.up);
+            // Keep the visible player aligned after this frame's camera orbit too.
+            var player = target.GetComponentInParent<PrototypePlayerController>();
+            if (player != null) player.FaceAimDirection(transform.forward);
         }
 
         private void HandleCursor()

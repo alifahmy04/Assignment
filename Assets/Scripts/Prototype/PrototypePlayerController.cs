@@ -3,13 +3,13 @@ using UnityEngine.InputSystem;
 
 namespace ElementalAnomaly.Prototype
 {
+    [DefaultExecutionOrder(-100)]
     [RequireComponent(typeof(CharacterController))]
     public sealed class PrototypePlayerController : MonoBehaviour
     {
         [Header("Movement")]
         [SerializeField, Min(0f)] private float moveSpeed = 5f;
         [SerializeField, Min(1f)] private float sprintMultiplier = 1.6f;
-        [SerializeField, Min(0f)] private float rotationSpeed = 720f;
 
         [Header("Airborne")]
         [SerializeField, Min(0f)] private float jumpHeight = 1.2f;
@@ -21,12 +21,14 @@ namespace ElementalAnomaly.Prototype
         private InputAction jumpAction;
         private InputAction sprintAction;
         private float verticalVelocity;
+        private PrototypePlayerHealth health;
 
         public Transform CameraTarget { get; private set; }
 
         private void Awake()
         {
             characterController = GetComponent<CharacterController>();
+            health = GetComponent<PrototypePlayerHealth>();
             movementCamera = Camera.main != null ? Camera.main.transform : null;
 
             CameraTarget = transform.Find("Camera Target");
@@ -72,14 +74,8 @@ namespace ElementalAnomaly.Prototype
             Vector2 input = moveAction.ReadValue<Vector2>();
             Vector3 desiredDirection = GetCameraRelativeDirection(input);
 
-            if (desiredDirection.sqrMagnitude > 0.001f)
-            {
-                Quaternion targetRotation = Quaternion.LookRotation(desiredDirection, Vector3.up);
-                transform.rotation = Quaternion.RotateTowards(
-                    transform.rotation,
-                    targetRotation,
-                    rotationSpeed * Time.deltaTime);
-            }
+            // Face the aim, not movement: A/D strafe and S backpedals.
+            FaceAimDirection(movementCamera != null ? movementCamera.forward : transform.forward);
 
             float speed = moveSpeed * (sprintAction.IsPressed() ? sprintMultiplier : 1f);
             UpdateVerticalVelocity();
@@ -87,6 +83,13 @@ namespace ElementalAnomaly.Prototype
             Vector3 velocity = desiredDirection * speed;
             velocity.y = verticalVelocity;
             characterController.Move(velocity * Time.deltaTime);
+        }
+
+        public void FaceAimDirection(Vector3 direction)
+        {
+            direction.y = 0f;
+            if (direction.sqrMagnitude > 0.001f)
+                transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
         }
 
         private Vector3 GetCameraRelativeDirection(Vector2 input)
@@ -115,6 +118,11 @@ namespace ElementalAnomaly.Prototype
             }
 
             verticalVelocity += gravity * Time.deltaTime;
+        }
+
+        private void OnControllerColliderHit(ControllerColliderHit hit)
+        {
+            hit.collider.GetComponentInParent<PrototypeDummyEnemy>()?.TryDamagePlayer(health);
         }
 
         private void CreateInputActions()

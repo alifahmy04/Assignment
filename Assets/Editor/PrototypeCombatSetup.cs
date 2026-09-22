@@ -40,6 +40,11 @@ namespace ElementalAnomaly.Editor
                 player.AddComponent<PrototypePlayerProgression>();
             }
 
+            if (player.GetComponent<PrototypePlayerHealth>() == null)
+            {
+                player.AddComponent<PrototypePlayerHealth>();
+            }
+
             if (player.GetComponent<PrototypeFireInteractor>() == null)
             {
                 player.AddComponent<PrototypeFireInteractor>();
