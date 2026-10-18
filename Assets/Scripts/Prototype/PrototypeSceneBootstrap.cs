@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.Cinemachine;
 
 namespace ElementalAnomaly.Prototype
 {
@@ -25,6 +26,9 @@ namespace ElementalAnomaly.Prototype
             {
                 mainCamera = CreateCamera();
             }
+
+            // A configured Cinemachine rig owns the Main Camera; do not restore the legacy driver.
+            if (mainCamera.GetComponent<CinemachineBrain>() != null) return;
 
             PrototypeThirdPersonCamera cameraController =
                 mainCamera.GetComponent<PrototypeThirdPersonCamera>();

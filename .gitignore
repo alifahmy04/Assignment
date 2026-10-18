@@ -112,3 +112,11 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Assignment reference documents and PDF exports
+*.[pP][dD][fF]
+*.[pP][dD][fF].meta
+
+# Local build output and document-generation working files
+/output/
+/tmp/

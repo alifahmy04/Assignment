@@ -24,6 +24,8 @@ namespace ElementalAnomaly.Prototype
         private PrototypePlayerHealth health;
 
         public Transform CameraTarget { get; private set; }
+        public bool InputLocked { get; private set; }
+        public void SetInputLocked(bool locked) => InputLocked = locked;
 
         private void Awake()
         {
@@ -66,6 +68,12 @@ namespace ElementalAnomaly.Prototype
 
         private void Update()
         {
+            if (InputLocked)
+            {
+                UpdateVerticalVelocity(false);
+                characterController.Move(Vector3.up * (verticalVelocity * Time.deltaTime));
+                return;
+            }
             if (movementCamera == null && Camera.main != null)
             {
                 movementCamera = Camera.main.transform;
@@ -105,14 +113,14 @@ namespace ElementalAnomaly.Prototype
             return Vector3.ClampMagnitude(forward * input.y + right * input.x, 1f);
         }
 
-        private void UpdateVerticalVelocity()
+        private void UpdateVerticalVelocity(bool allowJump = true)
         {
             if (characterController.isGrounded && verticalVelocity < 0f)
             {
                 verticalVelocity = -2f;
             }
 
-            if (characterController.isGrounded && jumpAction.WasPressedThisFrame())
+            if (allowJump && characterController.isGrounded && jumpAction.WasPressedThisFrame())
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
             }
@@ -122,6 +130,7 @@ namespace ElementalAnomaly.Prototype
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
         {
+            if (InputLocked) return;
             hit.collider.GetComponentInParent<PrototypeDummyEnemy>()?.TryDamagePlayer(health);
         }
 

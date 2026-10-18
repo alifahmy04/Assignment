@@ -22,6 +22,8 @@ namespace ElementalAnomaly.Prototype
         [SerializeField, Min(1f)] private float minimumDistance = 2f;
         [SerializeField, Min(2f)] private float maximumDistance = 8f;
         [SerializeField, Min(0f)] private float positionSmoothTime = 0.06f;
+        [Tooltip("Camera distance change per scroll step. Large wheel deltas are capped for consistent zoom.")]
+        [SerializeField, Min(0f)] private float scrollZoomSensitivity = 0.5f;
 
         [Header("Collision")]
         [SerializeField] private LayerMask collisionLayers = ~0;
@@ -120,7 +122,8 @@ namespace ElementalAnomaly.Prototype
             float scroll = Mouse.current.scroll.ReadValue().y;
             if (Mathf.Abs(scroll) > 0.01f)
             {
-                distance = Mathf.Clamp(distance - scroll * 0.01f, minimumDistance, maximumDistance);
+                float scrollStep = Mathf.Clamp(scroll, -1f, 1f);
+                distance = Mathf.Clamp(distance - scrollStep * scrollZoomSensitivity, minimumDistance, maximumDistance);
             }
         }
 

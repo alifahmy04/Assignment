@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Unity.Cinemachine;
 
 namespace ElementalAnomaly.Editor
 {
@@ -54,13 +55,6 @@ namespace ElementalAnomaly.Editor
                 mainCamera = CreateCamera();
             }
 
-            PrototypeThirdPersonCamera cameraController =
-                mainCamera.GetComponent<PrototypeThirdPersonCamera>();
-            if (cameraController == null)
-            {
-                cameraController = mainCamera.gameObject.AddComponent<PrototypeThirdPersonCamera>();
-            }
-
             Transform cameraTarget = player.transform.Find("Camera Target");
             if (cameraTarget == null)
             {
@@ -70,10 +64,16 @@ namespace ElementalAnomaly.Editor
                 cameraTarget = targetObject.transform;
             }
 
-            cameraController.Target = cameraTarget;
-            mainCamera.transform.SetPositionAndRotation(
-                new Vector3(0f, 3f, -5f),
-                Quaternion.Euler(15f, 0f, 0f));
+            if (mainCamera.GetComponent<CinemachineBrain>() == null)
+            {
+                PrototypeThirdPersonCamera cameraController = mainCamera.GetComponent<PrototypeThirdPersonCamera>();
+                if (cameraController == null)
+                    cameraController = mainCamera.gameObject.AddComponent<PrototypeThirdPersonCamera>();
+                cameraController.Target = cameraTarget;
+                mainCamera.transform.SetPositionAndRotation(
+                    new Vector3(0f, 3f, -5f),
+                    Quaternion.Euler(15f, 0f, 0f));
+            }
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);

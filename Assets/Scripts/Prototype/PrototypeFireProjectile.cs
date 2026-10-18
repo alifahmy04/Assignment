@@ -20,6 +20,7 @@ namespace ElementalAnomaly.Prototype
             if (nearest.HasValue)
             {
                 nearest.Value.collider.GetComponentInParent<PrototypeDummyEnemy>()?.TakeDamage(damage);
+                nearest.Value.collider.GetComponentInParent<PrototypeHeatDetector>()?.ReceiveFire();
                 Destroy(gameObject);
                 return;
             }

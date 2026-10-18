@@ -11,10 +11,16 @@ namespace ElementalAnomaly.Prototype
         public bool FireMode { get; private set; }
         public string Message { get; private set; }
         private PrototypePlayerProgression progression;
+        private PrototypePlayerController player;
         private float nextShot, messageUntil;
-        private void Awake() => progression = GetComponent<PrototypePlayerProgression>();
+        private void Awake()
+        {
+            progression = GetComponent<PrototypePlayerProgression>();
+            player = GetComponent<PrototypePlayerController>();
+        }
         private void Update()
         {
+            if (player != null && player.InputLocked) return;
             if (Time.time > messageUntil) Message = "";
             var keyboard = Keyboard.current;
             if (keyboard != null && keyboard.digit1Key.wasPressedThisFrame)

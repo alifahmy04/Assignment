@@ -14,9 +14,21 @@ namespace ElementalAnomaly.Prototype
         private float cooldownTimer;
         private Quaternion restingRotation;
         private float swingTimer;
+        private PrototypePlayerController player;
+        private PrototypeFireCombat fireCombat;
+        public bool IsEquipped { get; private set; } = true;
+
+        public void SetEquipped(bool equipped)
+        {
+            IsEquipped = equipped;
+            swingTimer = 0f;
+            UpdateWeaponVisibility();
+        }
 
         private void Awake()
         {
+            player = GetComponent<PrototypePlayerController>();
+            fireCombat = GetComponent<PrototypeFireCombat>();
             if (weaponVisual == null)
             {
                 Transform existing = transform.Find("Melee Weapon");
@@ -31,6 +43,7 @@ namespace ElementalAnomaly.Prototype
 
         private void Update()
         {
+            UpdateWeaponVisibility();
             cooldownTimer -= Time.deltaTime;
             swingTimer -= Time.deltaTime;
 
@@ -47,10 +60,17 @@ namespace ElementalAnomaly.Prototype
             }
         }
 
+        private void UpdateWeaponVisibility()
+        {
+            if (weaponVisual == null) return;
+            bool visible = IsEquipped && (fireCombat == null || !fireCombat.FireMode);
+            if (weaponVisual.gameObject.activeSelf != visible) weaponVisual.gameObject.SetActive(visible);
+        }
+
         private void TryAttack()
         {
-            var fire = GetComponent<PrototypeFireCombat>();
-            if (fire != null && fire.FireMode) return;
+            if (!IsEquipped || (player != null && player.InputLocked)) return;
+            if (fireCombat != null && fireCombat.FireMode) return;
             if (cooldownTimer > 0f)
             {
                 return;

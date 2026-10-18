@@ -7,8 +7,10 @@ namespace ElementalAnomaly.Prototype
         [SerializeField] private Renderer reactorCore;
         [SerializeField] private Renderer reactorRing;
         [SerializeField] private Light reactorLight;
+        public PrototypeReactorCinematic cinematic;
 
-        public string Prompt => "Press E to break Fire suppression";
+        public string Prompt => "[E] Break fire suppression";
+        public string GetPrompt(PrototypePlayerProgression progression) => CanInteract(progression) ? Prompt : string.Empty;
 
         private void Awake()
         {
@@ -39,14 +41,16 @@ namespace ElementalAnomaly.Prototype
 
         public void Interact(PrototypePlayerProgression progression)
         {
+            if (!CanInteract(progression)) return;
             progression.UnlockFire();
-            SetReactorGlow(false);
-
             PrototypeFireExitBarrier exit = Object.FindFirstObjectByType<PrototypeFireExitBarrier>();
-            if (exit != null)
-            {
-                exit.Unlock();
-            }
+            if (cinematic != null && cinematic.TryPlay(
+                () => { if (this != null) SetReactorGlow(false); },
+                () => { if (exit != null) exit.Unlock(); }))
+                return;
+
+            SetReactorGlow(false);
+            if (exit != null) exit.Unlock();
 
             Debug.Log("Fire manipulation restored. Ambient Fire sources are now absorbable.");
         }

@@ -61,7 +61,16 @@ namespace ElementalAnomaly.Prototype
             if (runtimeMaterial != null) Destroy(runtimeMaterial);
         }
 
-        public string Prompt => "Press E to absorb ambient Fire";
+        public string Prompt => "[E] Absorb fire (+1 charge)";
+
+        public string GetPrompt(PrototypePlayerProgression progression)
+        {
+            if (progression == null) return string.Empty;
+            if (!progression.FireUnlocked) return "Fire vent | Restore fire at the reactor first";
+            if (depleted) return $"Fire vent | Recharging ({Mathf.CeilToInt(Mathf.Max(0f, regenerateAt - Time.time))}s)";
+            if (progression.FireCharges >= progression.MaximumFireCharges) return "Fire vent | Fire charges full";
+            return Prompt;
+        }
 
         public bool CanInteract(PrototypePlayerProgression progression)
         {
